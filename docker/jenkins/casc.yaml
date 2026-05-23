@@ -1,0 +1,15 @@
+jenkins:
+  systemMessage: "ACs-qts Test Stack (provisioned via JCasC)"
+  numExecutors: 4
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: admin
+          password: admin
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+unclassified:
+  location:
+    url: http://localhost:8080/

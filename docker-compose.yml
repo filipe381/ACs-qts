@@ -1,0 +1,90 @@
+services:
+  jenkins:
+    build: ./docker/jenkins
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ./docker/jenkins/casc.yaml:/var/jenkins_home/casc.yaml:ro
+      - ./:/workspace:ro
+    depends_on:
+      - influxdb
+    networks:
+      - testnet
+
+  influxdb:
+    image: influxdb:1.8.10
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=jmeter
+      - INFLUXDB_HTTP_AUTH_ENABLED=false
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    networks:
+      - testnet
+
+  selenium:
+    image: selenium/standalone-chrome:148.0-20260505
+    container_name: selenium
+    shm_size: "2gb"
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    environment:
+      - SE_NODE_MAX_SESSIONS=1
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_VIDEO_RECORD_STANDALONE=true
+      - SE_RECORD_VIDEO=true
+      - SE_VNC_NO_PASSWORD=1
+      - SE_SCREEN_WIDTH=1920
+      - SE_SCREEN_HEIGHT=1080
+    networks:
+      - testnet
+
+  selenium-video:
+    image: selenium/video:ffmpeg-8.1-20260505
+    container_name: selenium-video
+    environment:
+      - DISPLAY_CONTAINER_NAME=selenium
+      - FILE_NAME=selenium-test.mp4
+      - SE_VIDEO_FOLDER=/videos
+    volumes:
+      - ./selenium/videos:/videos
+    depends_on:
+      - selenium
+    networks:
+      - testnet
+
+  grafana:
+    image: grafana/grafana-oss:10.4.10
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - influxdb
+    networks:
+      - testnet
+
+volumes:
+  jenkins_home:
+  influxdb_data:
+  grafana_data:
+
+networks:
+  testnet:
+    driver: bridge

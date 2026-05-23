@@ -1,0 +1,12 @@
+configuration-as-code:latest
+workflow-aggregator:latest
+git:latest
+junit:latest
+htmlpublisher:latest
+performance:latest
+pipeline-utility-steps:latest
+timestamper:latest
+ws-cleanup:latest
+matrix-auth:latest
+credentials-binding:latest
+ansicolor:latest
